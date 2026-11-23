@@ -103,13 +103,14 @@
 <body>
   <header>
     <h1>✨ GameBattle12 ✨</h1>
-    <p>Catch ⭐ Stars (+10) & 💖 Pink Hearts (+25 & +1 Life), and dodge 💣 Bombs!</p>
+    <p>Catch ⭐ Stars (+10), 🌟 Golden Stars (+50) & 💖 Pink Hearts (+25 & +1 Life), grab 🛡️ Shields to block a Bomb, and dodge 💣 Bombs!</p>
   </header>
 
   <div class="card">
     <div class="hud">
       <div>Score: <span id="score">0</span></div>
       <div class="badge">Level: <span id="level">1</span></div>
+      <div class="badge">Next: <span id="next">100</span> pts</div>
       <div class="badge mint-badge">Lives: <span id="lives">❤️❤️❤️</span></div>
       <div>Best: <span id="best">0</span></div>
     </div>
@@ -131,6 +132,7 @@
     const scoreEl = document.getElementById('score');
     const bestEl = document.getElementById('best');
     const levelEl = document.getElementById('level');
+    const nextEl = document.getElementById('next');
     const livesEl = document.getElementById('lives');
     const startBtn = document.getElementById('startBtn');
     const leftBtn = document.getElementById('leftBtn');
@@ -151,6 +153,9 @@
     let lives = 3;
     let running = false;
     let gameOver = false;
+    let shield = false;
+    let levelUpTimer = 0;
+    let levelUpLevel = 1;
     let soundOn = true;
     let items = [];
     let particles = [];
@@ -191,6 +196,7 @@
     function updateHUD() {
       scoreEl.textContent = score;
       levelEl.textContent = level;
+      nextEl.textContent = level * 100 - score;
       livesEl.textContent = lives > 0 ? '❤️'.repeat(lives) : '💔';
       if (score > bestScore) {
         bestScore = score;
@@ -207,24 +213,41 @@
       particles = [];
       spawnTimer = 0;
       player.x = canvas.width / 2 - player.w / 2;
+      shield = false;
+      levelUpTimer = 0;
       running = true;
       gameOver = false;
       updateHUD();
       playTone(523.25, 'sine', 0.15);
     }
 
+    function checkLevelUp() {
+      const newLevel = Math.floor(score / 100) + 1;
+      if (newLevel > level) {
+        level = newLevel;
+        levelUpLevel = newLevel;
+        levelUpTimer = 90;
+        playTone(784, 'triangle', 0.12);
+        setTimeout(() => playTone(1046.5, 'triangle', 0.18), 120);
+      }
+    }
+
     function spawnItem() {
       const rand = Math.random();
       let type = 'star';
-      if (rand > 0.85) type = 'heart';
-      else if (rand > 0.65) type = 'bomb';
+      if (rand > 0.95) type = 'golden';
+      else if (rand > 0.90) type = 'shield';
+      else if (rand > 0.80) type = 'heart';
+      else if (rand > 0.60) type = 'bomb';
 
+      // Bombs get faster from level 4 onwards
+      const bombBoost = type === 'bomb' && level >= 4 ? 1.2 : 1;
       items.push({
         x: Math.random() * (canvas.width - 40) + 20,
         y: -20,
         r: 16,
         type,
-        speed: 2.8 + level * 0.45 + Math.random() * 1.2
+        speed: (2.8 + level * 0.45 + Math.random() * 1.2) * bombBoost
       });
     }
 
@@ -307,7 +330,7 @@
         player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
 
         spawnTimer++;
-        const spawnInterval = Math.max(26, 60 - level * 4);
+        const spawnInterval = Math.max(22, 60 - level * 5);
         if (spawnTimer >= spawnInterval) {
           spawnItem();
           spawnTimer = 0;
@@ -324,24 +347,40 @@
           if (hitX && hitY) {
             if (it.type === 'star') {
               score += 10;
-              level = Math.floor(score / 100) + 1;
               createSparkles(it.x, it.y, '#facc15');
               playTone(660, 'triangle', 0.12);
+            } else if (it.type === 'golden') {
+              score += 50;
+              createSparkles(it.x, it.y, '#fbbf24');
+              playTone(987.77, 'triangle', 0.18);
+              playTone(1318.5, 'sine', 0.15);
             } else if (it.type === 'heart') {
               score += 25;
               if (lives < 3) lives++;
-              level = Math.floor(score / 100) + 1;
               createSparkles(it.x, it.y, '#ec4899');
               playTone(880, 'sine', 0.2);
+            } else if (it.type === 'shield') {
+              score += 10;
+              shield = true;
+              createSparkles(it.x, it.y, '#38bdf8');
+              playTone(523.25, 'sine', 0.15);
+              playTone(659.25, 'sine', 0.15);
             } else if (it.type === 'bomb') {
-              lives--;
-              createSparkles(it.x, it.y, '#475569');
-              playTone(160, 'sawtooth', 0.25);
-              if (lives <= 0) {
-                running = false;
-                gameOver = true;
+              if (shield) {
+                shield = false;
+                createSparkles(it.x, it.y, '#38bdf8');
+                playTone(440, 'square', 0.15);
+              } else {
+                lives--;
+                createSparkles(it.x, it.y, '#475569');
+                playTone(160, 'sawtooth', 0.25);
+                if (lives <= 0) {
+                  running = false;
+                  gameOver = true;
+                }
               }
             }
+            checkLevelUp();
             updateHUD();
             items.splice(i, 1);
             continue;
@@ -369,12 +408,30 @@
         drawCuteCharacter(player.x, player.y, player.w, player.h);
       }
 
+      // Shield ring around the character while a shield is active
+      if (shield) {
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(player.x + player.w / 2, player.y + player.h / 2, 62, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Level-up banner
+      if (levelUpTimer > 0) {
+        ctx.fillStyle = '#7c3aed';
+        ctx.font = 'bold 30px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`🎉 Level ${levelUpLevel}!`, canvas.width / 2, 70);
+        levelUpTimer--;
+      }
+
       // Draw Falling Items
       ctx.font = '26px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       for (const it of items) {
-        const icon = it.type === 'star' ? '⭐' : it.type === 'heart' ? '💖' : '💣';
+        const icon = it.type === 'star' ? '⭐' : it.type === 'golden' ? '🌟' : it.type === 'heart' ? '💖' : it.type === 'shield' ? '🛡️' : '💣';
         ctx.fillText(icon, it.x, it.y);
       }
 
@@ -405,7 +462,7 @@
         );
         ctx.fillStyle = '#ec4899';
         ctx.font = '15px system-ui, sans-serif';
-        ctx.fillText('Collect ⭐ & 💖 | Avoid 💣', canvas.width / 2, canvas.height / 2 + 22);
+        ctx.fillText('Collect ⭐ 💖 🌟 🛡️ | Avoid 💣', canvas.width / 2, canvas.height / 2 + 22);
       }
 
       requestAnimationFrame(update);
