@@ -1,42 +1,130 @@
+
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GameBattle12 — Web Arcade</title>
+  <title>GameBattle12 — Cute Star Catcher</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: #0b0f19; color: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 32px 16px; }
-    header { text-align: center; max-width: 720px; margin-bottom: 28px; }
-    h1 { font-size: 2.2rem; color: #38bdf8; margin-bottom: 8px; }
-    p { color: #94a3b8; line-height: 1.5; }
-    .card { background: #131a2a; border: 1px solid #1e293b; border-radius: 16px; padding: 24px; width: 100%; max-width: 720px; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
-    .hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-weight: 600; }
-    canvas { width: 100%; height: 360px; background: #070b14; border-radius: 12px; display: block; border: 1px solid #263349; }
-    .controls { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
-    button { background: #38bdf8; color: #06101a; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-    button:hover { background: #7dd3fc; }
-    .hint { text-align: center; color: #64748b; font-size: 0.9rem; margin-top: 12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body {
+      background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #dcfce7 100%);
+      color: #3b0764;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+    header { text-align: center; max-width: 720px; margin-bottom: 18px; }
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    p { color: #6b21a8; font-size: 0.95rem; }
+    .card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(10px);
+      border: 2px solid #f9a8d4;
+      border-radius: 22px;
+      padding: 20px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 14px 35px rgba(236, 72, 153, 0.15);
+    }
+    .hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-weight: 700;
+      background: #fdf2f8;
+      padding: 10px 16px;
+      border-radius: 14px;
+      border: 1px solid #fbcfe8;
+    }
+    .badge {
+      background: #e9d5ff;
+      color: #581c87;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+    .mint-badge {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    canvas {
+      width: 100%;
+      height: 400px;
+      background: linear-gradient(180deg, #faf5ff 0%, #fff1f2 75%, #ecfdf5 100%);
+      border-radius: 16px;
+      display: block;
+      border: 2px solid #d8b4fe;
+      touch-action: none;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: linear-gradient(135deg, #f472b6, #ec4899);
+      color: #ffffff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+      transition: transform 0.1s ease;
+    }
+    button:active { transform: scale(0.96); }
+    button.secondary {
+      background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    }
+    button.mint {
+      background: linear-gradient(135deg, #34d399, #10b981);
+    }
+    .hint {
+      text-align: center;
+      color: #7e22ce;
+      font-size: 0.88rem;
+      margin-top: 12px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>GameBattle12</h1>
-    <p>Live web project hosted on Vercel from GitHub. Click Start and use Left/Right arrow keys or on-screen buttons to catch stars!</p>
+    <h1>✨ GameBattle12 ✨</h1>
+    <p>Catch ⭐ Stars (+10) & 💖 Pink Hearts (+25 & +1 Life), and dodge 💣 Bombs!</p>
   </header>
 
   <div class="card">
     <div class="hud">
       <div>Score: <span id="score">0</span></div>
+      <div class="badge">Level: <span id="level">1</span></div>
+      <div class="badge mint-badge">Lives: <span id="lives">❤️❤️❤️</span></div>
       <div>Best: <span id="best">0</span></div>
     </div>
-    <canvas id="gameCanvas" width="680" height="360"></canvas>
+
+    <canvas id="gameCanvas" width="680" height="400"></canvas>
+
     <div class="controls">
-      <button id="leftBtn">← Left</button>
-      <button id="startBtn">Start / Restart</button>
-      <button id="rightBtn">Right →</button>
+      <button class="secondary" id="leftBtn">◀ Left</button>
+      <button id="startBtn">▶ Start / Restart</button>
+      <button class="secondary" id="rightBtn">Right ▶</button>
+      <button class="mint" id="soundBtn">🔊 Sound: ON</button>
     </div>
-    <div class="hint">ArrowLeft / ArrowRight or buttons to move</div>
+    <div class="hint">Use Arrow Keys (← →), Drag/Touch on screen, or click buttons to move!</div>
   </div>
 
   <script>
@@ -44,71 +132,282 @@
     const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
     const bestEl = document.getElementById('best');
+    const levelEl = document.getElementById('level');
+    const livesEl = document.getElementById('lives');
     const startBtn = document.getElementById('startBtn');
     const leftBtn = document.getElementById('leftBtn');
     const rightBtn = document.getElementById('rightBtn');
+    const soundBtn = document.getElementById('soundBtn');
 
-    let bestScore = Number(localStorage.getItem('gamebattle12_best') || 0);
+    // Load uploaded character.png if present in repository
+    const charImg = new Image();
+    let imgLoaded = false;
+    charImg.onload = () => { imgLoaded = true; };
+    charImg.src = './character.png';
+
+    let bestScore = Number(localStorage.getItem('gamebattle12_cute_best') || 0);
     bestEl.textContent = bestScore;
 
     let score = 0;
+    let level = 1;
+    let lives = 3;
     let running = false;
-    let player = { x: canvas.width / 2 - 35, y: canvas.height - 28, w: 70, h: 14, speed: 7 };
-    let star = { x: Math.random() * (canvas.width - 24) + 12, y: 15, r: 10, speed: 3.2 };
-    let keys = { left: false, right: false };
+    let gameOver = false;
+    let soundOn = true;
+    let items = [];
+    let particles = [];
+    let spawnTimer = 0;
+
+    const player = {
+      x: canvas.width / 2 - 42,
+      y: canvas.height - 115,
+      w: 84,
+      h: 105,
+      speed: 8
+    };
+
+    const keys = { left: false, right: false };
+
+    // Simple Web Audio synth sound effects
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration) {
+      if (!soundOn) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    }
+
+    soundBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+    });
+
+    function updateHUD() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      livesEl.textContent = lives > 0 ? '❤️'.repeat(lives) : '💔';
+      if (score > bestScore) {
+        bestScore = score;
+        bestEl.textContent = bestScore;
+        localStorage.setItem('gamebattle12_cute_best', bestScore);
+      }
+    }
 
     function resetGame() {
       score = 0;
-      scoreEl.textContent = score;
-      star.y = 15;
-      star.x = Math.random() * (canvas.width - 30) + 15;
-      star.speed = 3.2;
+      level = 1;
+      lives = 3;
+      items = [];
+      particles = [];
+      spawnTimer = 0;
+      player.x = canvas.width / 2 - player.w / 2;
       running = true;
+      gameOver = false;
+      updateHUD();
+      playTone(523.25, 'sine', 0.15);
+    }
+
+    function spawnItem() {
+      const rand = Math.random();
+      let type = 'star';
+      if (rand > 0.85) type = 'heart';
+      else if (rand > 0.65) type = 'bomb';
+
+      items.push({
+        x: Math.random() * (canvas.width - 40) + 20,
+        y: -20,
+        r: 16,
+        type,
+        speed: 2.8 + level * 0.45 + Math.random() * 1.2
+      });
+    }
+
+    function createSparkles(x, y, color) {
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.5) * 5,
+          life: 25,
+          color
+        });
+      }
+    }
+
+    // Fallback cute vector character matching your pink bow & hoodie girl
+    function drawCuteCharacter(x, y, w, h) {
+      const cx = x + w / 2;
+      // Wavy brown hair back
+      ctx.fillStyle = '#4a2511';
+      ctx.beginPath();
+      ctx.ellipse(cx, y + 42, 28, 34, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // Bun
+      ctx.beginPath();
+      ctx.arc(cx, y + 10, 13, 0, Math.PI * 2);
+      ctx.fill();
+      // Pink Bow
+      ctx.fillStyle = '#ec4899';
+      ctx.beginPath();
+      ctx.ellipse(cx - 10, y + 14, 10, 6, -0.3, 0, Math.PI * 2);
+      ctx.ellipse(cx + 10, y + 14, 10, 6, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+      // Face
+      ctx.fillStyle = '#ffe4d6';
+      ctx.beginPath();
+      ctx.arc(cx, y + 34, 18, 0, Math.PI * 2);
+      ctx.fill();
+      // Eyes & Blush
+      ctx.fillStyle = '#2d160c';
+      ctx.beginPath();
+      ctx.arc(cx - 6, y + 34, 3, 0, Math.PI * 2);
+      ctx.arc(cx + 6, y + 34, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.arc(cx - 10, y + 39, 3, 0, Math.PI * 2);
+      ctx.arc(cx + 10, y + 39, 3, 0, Math.PI * 2);
+      ctx.fill();
+      // Pink Hoodie
+      ctx.fillStyle = '#f472b6';
+      ctx.beginPath();
+      ctx.roundRect(cx - 18, y + 50, 36, 28, 8);
+      ctx.fill();
+      // White Heart on Hoodie
+      ctx.fillStyle = '#fce7f3';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('❤', cx, y + 68);
+      // Blue Jeans
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillRect(cx - 14, y + 78, 12, 20);
+      ctx.fillRect(cx + 2, y + 78, 12, 20);
+      // Pink Sneakers
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx - 16, y + 96, 14, 7);
+      ctx.fillRect(cx + 2, y + 96, 14, 7);
     }
 
     function update() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Soft mint ground strip
+      ctx.fillStyle = '#a7f3d0';
+      ctx.fillRect(0, canvas.height - 14, canvas.width, 14);
 
       if (running) {
         if (keys.left) player.x -= player.speed;
         if (keys.right) player.x += player.speed;
         player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
 
-        star.y += star.speed;
+        spawnTimer++;
+        const spawnInterval = Math.max(26, 60 - level * 4);
+        if (spawnTimer >= spawnInterval) {
+          spawnItem();
+          spawnTimer = 0;
+        }
 
-        if (
-          star.y + star.r >= player.y &&
-          star.x >= player.x &&
-          star.x <= player.x + player.w
-        ) {
-          score += 10;
-          scoreEl.textContent = score;
-          if (score > bestScore) {
-            bestScore = score;
-            bestEl.textContent = bestScore;
-            localStorage.setItem('gamebattle12_best', bestScore);
+        for (let i = items.length - 1; i >= 0; i--) {
+          const it = items[i];
+          it.y += it.speed;
+
+          // Collision check with character
+          const hitX = it.x + it.r > player.x + 10 && it.x - it.r < player.x + player.w - 10;
+          const hitY = it.y + it.r > player.y + 10 && it.y - it.r < player.y + player.h;
+
+          if (hitX && hitY) {
+            if (it.type === 'star') {
+              score += 10;
+              level = Math.floor(score / 100) + 1;
+              createSparkles(it.x, it.y, '#facc15');
+              playTone(660, 'triangle', 0.12);
+            } else if (it.type === 'heart') {
+              score += 25;
+              if (lives < 3) lives++;
+              level = Math.floor(score / 100) + 1;
+              createSparkles(it.x, it.y, '#ec4899');
+              playTone(880, 'sine', 0.2);
+            } else if (it.type === 'bomb') {
+              lives--;
+              createSparkles(it.x, it.y, '#475569');
+              playTone(160, 'sawtooth', 0.25);
+              if (lives <= 0) {
+                running = false;
+                gameOver = true;
+              }
+            }
+            updateHUD();
+            items.splice(i, 1);
+            continue;
           }
-          star.y = 15;
-          star.x = Math.random() * (canvas.width - 30) + 15;
-          star.speed = Math.min(8.5, star.speed + 0.25);
-        } else if (star.y - star.r > canvas.height) {
-          running = false;
+
+          if (it.y - it.r > canvas.height) {
+            if (it.type === 'star') {
+              lives--;
+              updateHUD();
+              playTone(220, 'sine', 0.15);
+              if (lives <= 0) {
+                running = false;
+                gameOver = true;
+              }
+            }
+            items.splice(i, 1);
+          }
         }
       }
 
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillRect(player.x, player.y, player.w, player.h);
+      // Draw Character (uses character.png if uploaded, otherwise built-in cute art)
+      if (imgLoaded) {
+        ctx.drawImage(charImg, player.x, player.y, player.w, player.h);
+      } else {
+        drawCuteCharacter(player.x, player.y, player.w, player.h);
+      }
 
-      ctx.fillStyle = '#facc15';
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-      ctx.fill();
+      // Draw Falling Items
+      ctx.font = '26px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (const it of items) {
+        const icon = it.type === 'star' ? '⭐' : it.type === 'heart' ? '💖' : '💣';
+        ctx.fillText(icon, it.x, it.y);
+      }
 
+      // Draw Sparkles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // Overlay text when paused or game over
       if (!running) {
-        ctx.fillStyle = '#f8fafc';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+        ctx.roundRect(canvas.width / 2 - 190, canvas.height / 2 - 48, 380, 96, 16);
+        ctx.fill();
+        ctx.fillStyle = '#6b21a8';
         ctx.font = 'bold 22px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Press "Start / Restart" to Play', canvas.width / 2, canvas.height / 2);
+        ctx.fillText(
+          gameOver ? `Game Over! Final Score: ${score}` : 'Press "Start / Restart" to Play',
+          canvas.width / 2,
+          canvas.height / 2 - 8
+        );
+        ctx.fillStyle = '#ec4899';
+        ctx.font = '15px system-ui, sans-serif';
+        ctx.fillText('Collect ⭐ & 💖 | Avoid 💣', canvas.width / 2, canvas.height / 2 + 22);
       }
 
       requestAnimationFrame(update);
@@ -123,10 +422,26 @@
       if (e.key === 'ArrowLeft') keys.left = false;
       if (e.key === 'ArrowRight') keys.right = false;
     });
-    leftBtn.addEventListener('mousedown', () => keys.left = true);
-    leftBtn.addEventListener('mouseup', () => keys.left = false);
-    rightBtn.addEventListener('mousedown', () => keys.right = true);
-    rightBtn.addEventListener('mouseup', () => keys.right = false);
+
+    // Touch & Mouse button controls
+    const bindHold = (btn, dir) => {
+      btn.addEventListener('mousedown', () => keys[dir] = true);
+      btn.addEventListener('mouseup', () => keys[dir] = false);
+      btn.addEventListener('mouseleave', () => keys[dir] = false);
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[dir] = true; });
+      btn.addEventListener('touchend', () => keys[dir] = false);
+    };
+    bindHold(leftBtn, 'left');
+    bindHold(rightBtn, 'right');
+
+    // Drag directly on canvas to move character smoothly
+    canvas.addEventListener('pointermove', (e) => {
+      if (!running) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const pointerX = (e.clientX - rect.left) * scaleX;
+      player.x = Math.max(0, Math.min(canvas.width - player.w, pointerX - player.w / 2));
+    });
 
     update();
   </script>
